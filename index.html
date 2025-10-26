@@ -263,79 +263,73 @@
     }
     function classify(sum){ return sum <= 5 ? {tag:"Low risk (re-evaluate in 1 year)", cls:"ok"} : {tag:"High risk (complete ophthalmic evaluation ASAP)", cls:"bad"}; }
 
-    const el = (id) => document.getElementById(id);
-    const age = el("age"), iopr = el("iopr"), iopl = el("iopl"), cctr = el("cctr"), cctl = el("cctl"), dx = el("dx");
-    const outR = el("outR"), outL = el("outL"), riskInfo = el("riskInfo");
+    <script>
+  // ... keep everything above as-is (ENDPOINT_URL, helpers, etc.)
 
-    const TEXT_HIGH = `
-      <div class="hrisk">
-        <strong>Information for <span style="color:#ff9f9f">High Risk</span> Patients</strong>
-        <p>Based on checking your age, intraocular pressures and central corneal thickness your risk for glaucoma is high.
-        We recommend a complete examination as soon as possible to check your optic nerve and visual field to make sure you do not currently have glaucoma.
-        You should also get checked for glasses, cataracts, retinopathy, and macular degeneration.
-        Your risk for these conditions increases with age and you should be checked every year.</p>
-      </div>`;
-    const TEXT_LOW = `
-      <div class="lrisk">
-        <strong>Information for <span style="color:#9fe3a1">Low Risk</span> Patients</strong>
-        <p>Based on checking your age, intraocular pressures and central corneal thickness your risk for glaucoma is low.
-        We recommend a complete examination once a year to fully check for glasses, cataracts, glaucoma, retinopathy, and macular degeneration.
-        Your risk for these conditions increases with age and should be checked every year.</p>
-      </div>`;
+  const el = (id) => document.getElementById(id);
+  const age = el("age"), iopr = el("iopr"), iopl = el("iopl"), cctr = el("cctr"), cctl = el("cctl"), dx = el("dx");
+  const outR = el("outR"), outL = el("outL");
+  const riskInfoR = el("riskInfoR"), riskInfoL = el("riskInfoL");  // NEW
 
-    window.calc = function calc(){
-      const a = Number(age.value || 0);
-      const rIOP = Number(iopr.value || 0);
-      const lIOP = Number(iopl.value || 0);
-      const rCCT = Number(cctr.value || 0);
-      const lCCT = Number(cctl.value || 0);
+  const TEXT_HIGH = `
+    <div class="hrisk">
+      <strong>Information for <span style="color:#ff9f9f">High Risk</span> Patients</strong>
+      <p>Based on checking your age, intraocular pressures and central corneal thickness your risk for glaucoma is high.
+      We recommend a complete examination as soon as possible to check your optic nerve and visual field to make sure you do not currently have glaucoma.
+      You should also get checked for glasses, cataracts, retinopathy, and macular degeneration.
+      Your risk for these conditions increases with age and you should be checked every year.</p>
+    </div>`;
+  const TEXT_LOW = `
+    <div class="lrisk">
+      <strong>Information for <span style="color:#9fe3a1">Low Risk</span> Patients</strong>
+      <p>Based on checking your age, intraocular pressures and central corneal thickness your risk for glaucoma is low.
+      We recommend a complete examination once a year to fully check for glasses, cataracts, glaucoma, retinopathy, and macular degeneration.
+      Your risk for these conditions increases with age and should be checked every year.</p>
+    </div>`;
 
-      const ap = agePoints(a);
-      const r = ap + iopPoints(rIOP) + cctPoints(rCCT);
-      const l = ap + iopPoints(lIOP) + cctPoints(lCCT);
-      const rc = classify(r), lc = classify(l);
+  // Expose calc so Save uses the latest results
+  window.calc = function calc(){
+    const a = Number(age.value || 0);
+    const rIOP = Number(iopr.value || 0);
+    const lIOP = Number(iopl.value || 0);
+    const rCCT = Number(cctr.value || 0);
+    const lCCT = Number(cctl.value || 0);
 
-      outR.hidden = false; outL.hidden = false;
-      outR.innerHTML = `<strong>Right eye total:</strong> <span class="pill ${rc.cls}">${r} pts</span><br/>
-        <strong>Risk:</strong> <span class="pill ${rc.cls}">${rc.tag}</span>`;
-      outL.innerHTML = `<strong>Left eye total:</strong> <span class="pill ${lc.cls}">${l} pts</span><br/>
-        <strong>Risk:</strong> <span class="pill ${lc.cls}">${lc.tag}</span>`;
+    const ap = agePoints(a);
+    const r = ap + iopPoints(rIOP) + cctPoints(rCCT);
+    const l = ap + iopPoints(lIOP) + cctPoints(lCCT);
+    const rc = classify(r), lc = classify(l);
 
-      const anyHigh = (rc.cls === "bad") || (lc.cls === "bad");
-      riskInfo.hidden = false;
-      riskInfo.innerHTML = anyHigh ? TEXT_HIGH : TEXT_LOW;
+    // numeric summaries
+    outR.hidden = false; outL.hidden = false;
+    outR.innerHTML = `<strong>Right eye total:</strong> <span class="pill ${rc.cls}">${r} pts</span><br/>
+      <strong>Risk:</strong> <span class="pill ${rc.cls}">${rc.tag}</span>`;
+    outL.innerHTML = `<strong>Left eye total:</strong> <span class="pill ${lc.cls}">${l} pts</span><br/>
+      <strong>Risk:</strong> <span class="pill ${lc.cls}">${lc.tag}</span>`;
 
-      return {
-        site: siteSel.value === "Other" ? (siteOther.value || "Other") : siteSel.value,
-        a, rIOP, lIOP, rCCT, lCCT,
-        ap, r, l, rcTag: rc.tag, lcTag: lc.tag,
-        diagnoses: dx.value
-      };
-    }
+    // per-eye guidance blocks
+    riskInfoR.hidden = false;
+    riskInfoL.hidden = false;
+    riskInfoR.innerHTML = `<strong>Right eye guidance</strong><br/>` + (rc.cls === "bad" ? TEXT_HIGH : TEXT_LOW);
+    riskInfoL.innerHTML = `<strong>Left eye guidance</strong><br/>`  + (lc.cls === "bad" ? TEXT_HIGH : TEXT_LOW);
 
-    el("calcBtn").addEventListener("click", () => window.calc());
-    el("clearBtn").addEventListener("click", () => {
-      [siteSel, siteOther].forEach(x => x.value = "");
-      siteOtherWrap.style.display = "none";
-      [age,iopr,iopl,cctr,cctl,dx].forEach(x => x.value = "");
-      outR.hidden = true; outL.hidden = true; riskInfo.hidden = true; riskInfo.innerHTML = "";
-    });
+    return {
+      site: siteSel.value === "Other" ? (siteOther.value || "Other") : siteSel.value,
+      a, rIOP, lIOP, rCCT, lCCT,
+      ap, r, l, rcTag: rc.tag, lcTag: lc.tag,
+      diagnoses: dx.value
+    };
+  };
 
-    el("saveBtn").addEventListener("click", async () => {
-      const ENDPOINT = "https://script.google.com/macros/s/AKfycbw1aZVaPSjHe-4A4dVbWpmOrJ1fPDCyCrcOvdbeY-tZ9NX432vSypbMqy2EXHEK77x3/exec";
-      const payload = window.calc();
-      try {
-        const res = await fetch(ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ source: "laroche-glaucoma-calculator", data: payload, ua: navigator.userAgent })
-        });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        alert("Saved ✔︎");
-      } catch (e) {
-        alert("Save failed. Check endpoint and permissions.\n" + e.message);
-      }
-    });
-  </script>
-</body>
-</html>
+  // Clear button should hide both blocks
+  el("clearBtn").addEventListener("click", () => {
+    [siteSel, siteOther].forEach(x => x.value = "");
+    siteOtherWrap.style.display = "none";
+    [age,iopr,iopl,cctr,cctl,dx].forEach(x => x.value = "");
+    outR.hidden = true; outL.hidden = true;
+    riskInfoR.hidden = true; riskInfoR.innerHTML = "";
+    riskInfoL.hidden = true; riskInfoL.innerHTML = "";
+  });
+
+  // Save button can stay the same (it calls window.calc())
+</script>
