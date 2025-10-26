@@ -12,13 +12,18 @@
     header { padding:28px 16px 8px; text-align:center; }
     header h1 { margin:0; font-size:clamp(22px,3vw,32px); letter-spacing:.2px; }
     header p { margin:.6rem auto 0; color:var(--muted); max-width:1000px; }
+    /* (1) smaller intro font */
+    .intro { font-size: clamp(13px, 1.6vw, 15px); line-height: 1.45; }
+    /* (2) red disclaimer sentence */
+    .disclaimer-strong { color: var(--danger); font-weight: 700; }
     .wrap { max-width:1100px; margin:16px auto 48px; padding:0 16px; }
+    /* (4) stack everything: single-column always */
     .grid { display:grid; gap:16px; grid-template-columns:1fr; }
-    @media (min-width: 980px) { .grid { grid-template-columns: 2fr 1.25fr; } }
     .card { background:color-mix(in oklab,var(--card) 92%,black); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.3); }
     .card h2 { margin:.2rem 0 1rem; font-size:20px; }
     fieldset { border:0; margin:0 0 14px; padding:0; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0; }
+    @media (max-width: 640px){ .row { grid-template-columns: 1fr; } }
     label { font-size:14px; color:var(--muted); display:block; margin-bottom:6px; }
     select, input[type="number"], input[type="text"], textarea {
       width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
@@ -49,30 +54,29 @@
   <header>
     <h1>Laroche Glaucoma Risk Calculator</h1>
 
-    <!-- 2) Replace intro text -->
-    <p>
+    <!-- smaller intro -->
+    <p class="intro">
       Based on results from the Ocular Hypertension Treatment Study (OHTS) and the European Glaucoma Prevention Study (EGPS), we present a method for
       estimating if you are at higher risk or lower risk for having or developing glaucoma. The method may be useful to clinicians and patients in
       deciding the frequency of examinations, tests, and the potential benefit of starting treatment and/or having earlier cataract surgery and
       microinvasive glaucoma surgery.
     </p>
 
-    <!-- 4) Statement under header -->
+    <!-- red disclaimer + reworded closing -->
     <p style="margin-top:.6rem">
-      <strong>The risks derived using these methods are designed to aid but not to replace clinical judgment and a complete ophthalmic examination.</strong>
-      For more information about this calculator you can reach Dr. Daniel Laroche at the address and numbers above
-      <a href="mailto:info@advancedeyecareny.com">info@advancedeyecareny.com</a>.
+      <span class="disclaimer-strong">The risks derived using these methods are designed to aid but not to replace clinical judgment and a complete ophthalmic examination.</span>
+      <br/>
+      For additional inquiries regarding this calculator, please contact Dr. Daniel Laroche using the contact information provided at the bottom of this page.
       Copyright 2023, Daniel Laroche MD, Advanced Eyecare of New York.
     </p>
   </header>
 
   <div class="wrap">
     <div class="grid">
+      <!-- CALCULATOR FIRST (stacked layout) -->
       <section class="card">
-        <!-- 5) Title change -->
         <h2>Calculate Glaucoma Risk</h2>
 
-        <!-- 3) Directions -->
         <div class="result" id="directions">
           <strong>Directions</strong>
           <p>
@@ -82,7 +86,6 @@
           </p>
         </div>
 
-        <!-- 6) Site (with Other) -->
         <fieldset class="row">
           <div>
             <label for="siteSel">Site</label>
@@ -105,7 +108,6 @@
             <label for="age">Age (years)</label>
             <input id="age" type="number" min="1" max="120" step="1" placeholder="e.g., 62" />
           </div>
-          <!-- 8) Remove age-points UI (column intentionally left blank for layout on small screens) -->
           <div></div>
         </fieldset>
 
@@ -132,7 +134,6 @@
           </div>
         </fieldset>
 
-        <!-- 7) Additional diagnoses -->
         <fieldset>
           <label for="dx">Additional diagnoses</label>
           <textarea id="dx" placeholder="e.g., closed angle glaucoma"></textarea>
@@ -144,11 +145,8 @@
           <button class="secondary" id="saveBtn" type="button" title="Stores a row to your Google Sheet">Save to log</button>
         </div>
 
-        <!-- Per-eye numeric results -->
         <div id="outR" class="result" hidden></div>
         <div id="outL" class="result" hidden></div>
-
-        <!-- 11) Risk information block that appears after calculation -->
         <div id="riskInfo" class="result" hidden></div>
 
         <small class="caption">
@@ -156,8 +154,8 @@
         </small>
       </section>
 
-      <!-- 9) Replace Scoring Bins with the table -->
-      <aside class="card">
+      <!-- SCORING TABLE SECOND (stacked layout) -->
+      <section class="card">
         <h2>Scoring table</h2>
         <div class="result" style="overflow:auto">
           <table>
@@ -193,31 +191,26 @@
           by D. Laroche, K. Rickford, E. V. Mike, L. Hunter, E. Ede, C. Ng, and J. Douglas
           (doi: 10.1155/2022/5288726. PMID: 35957745; PMCID: PMC9357680).
         </p>
-        <div class="result">
-          <strong>Storage</strong>
-          <p>Click <em>Save to log</em> to append a row to your secure log (Google Sheet endpoint configured below).</p>
-          <small class="caption mono" id="endpointShow"></small>
-        </div>
-      </aside>
-    </div>
+      </section>
 
-    <!-- 10) Limitations and cautions -->
-    <section class="card" style="margin-top:16px">
-      <h2>Limitations and Cautions</h2>
-      <ul>
-        <li>The prediction methods presented here are derived from the Laroche Glaucoma calculator study. There is no guarantee that the predicted risk is accurate for individual patients.</li>
-        <li>The predictions are more likely to be accurate for patients who are similar to the participants studied in the study. This calculator should exclude congenital and juvenile glaucoma in younger patients.</li>
-        <li>These prediction models were derived from studies of patients with and without glaucoma. It is not clear whether these models also predict progression of established disease or the development of visual disability from the need for glasses, retinopathy, cataracts and other diseases.</li>
-        <li>This calculator does not require optic nerve evaluation, vertical cup to disc ratio, nor visual field evaluation. These evaluations should be performed as soon as possible on high-risk patients as part of a complete ophthalmic examination. On low-risk patients, a complete ophthalmic examination should be performed within 6–12 months.</li>
-        <li><strong>The risks derived using these methods are designed to aid but not to replace clinical judgment and a complete ophthalmic examination.</strong></li>
-      </ul>
-      <p class="caption">
-        Copyright: Daniel Laroche MD, Advanced Eyecare of New York. Direct users may choose to use the estimators online or download the estimators
-        to their own electronic devices for future personal use. Estimators may not be otherwise downloaded or redistributed without permission from
-        Daniel Laroche MD. &nbsp; Contact: <a href="mailto:info@advancedeyecareny.com">info@advancedeyecareny.com</a>
-        &nbsp;|&nbsp; Advanced Eyecare of New York, 49 West 127<sup>th</sup> Street, New York, NY 10027 &nbsp;|&nbsp; 212-663-0473 &nbsp;|&nbsp; 718-217-0424
-      </p>
-    </section>
+      <!-- Limitations and Cautions remains as-is -->
+      <section class="card">
+        <h2>Limitations and Cautions</h2>
+        <ul>
+          <li>The prediction methods presented here are derived from the Laroche Glaucoma calculator study. There is no guarantee that the predicted risk is accurate for individual patients.</li>
+          <li>The predictions are more likely to be accurate for patients who are similar to the participants studied in the study. This calculator should exclude congenital and juvenile glaucoma in younger patients.</li>
+          <li>These prediction models were derived from studies of patients with and without glaucoma. It is not clear whether these models also predict progression of established disease or the development of visual disability from the need for glasses, retinopathy, cataracts and other diseases.</li>
+          <li>This calculator does not require optic nerve evaluation, vertical cup to disc ratio, nor visual field evaluation. These evaluations should be performed as soon as possible on high-risk patients as part of a complete ophthalmic examination. On low-risk patients, a complete ophthalmic examination should be performed within 6–12 months.</li>
+          <li><strong>The risks derived using these methods are designed to aid but not to replace clinical judgment and a complete ophthalmic examination.</strong></li>
+        </ul>
+        <p class="caption">
+          Copyright: Daniel Laroche MD, Advanced Eyecare of New York. Direct users may choose to use the estimators online or download the estimators
+          to their own electronic devices for future personal use. Estimators may not be otherwise downloaded or redistributed without permission from
+          Daniel Laroche MD. &nbsp; Contact: <a href="mailto:info@advancedeyecareny.com">info@advancedeyecareny.com</a>
+          &nbsp;|&nbsp; Advanced Eyecare of New York, 49 West 127<sup>th</sup> Street, New York, NY 10027 &nbsp;|&nbsp; 212-663-0473 &nbsp;|&nbsp; 718-217-0424
+        </p>
+      </section>
+    </div>
   </div>
 
   <footer>
@@ -225,9 +218,8 @@
   </footer>
 
   <script>
-    // === (1) Endpoint configured to your URL ===
+    // Endpoint remains configured (UI box removed as requested)
     const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbw1aZVaPSjHe-4A4dVbWpmOrJ1fPDCyCrcOvdbeY-tZ9NX432vSypbMqy2EXHEK77x3/exec";
-    document.getElementById("endpointShow").textContent = ENDPOINT_URL;
 
     // Site "Other" toggle
     const siteSel = document.getElementById("siteSel");
@@ -238,7 +230,7 @@
       if (siteSel.value !== "Other") siteOther.value = "";
     });
 
-    // === Scoring helpers (bins per table) ===
+    // Scoring helpers
     function agePoints(age){
       if (age <= 40) return 0;
       if (age <= 50) return 1;
@@ -246,7 +238,7 @@
       if (age <= 70) return 3;
       if (age <= 80) return 4;
       if (age <= 90) return 5;
-      return 6; // ≥91
+      return 6;
     }
     function iopPoints(iop){
       if (iop <= 12) return 0;
@@ -255,7 +247,7 @@
       if (iop <= 21) return 3;
       if (iop <= 25) return 4;
       if (iop <= 29) return 5;
-      return 6; // ≥30
+      return 6;
     }
     function cctPoints(cct){
       if (cct > 600) return -3;
@@ -267,7 +259,7 @@
       if (cct >= 450) return 3;
       if (cct >= 425) return 4;
       if (cct >= 400) return 5;
-      return 6; // <400
+      return 6;
     }
     function classify(sum){ return sum <= 5 ? {tag:"Low risk (re-evaluate in 1 year)", cls:"ok"} : {tag:"High risk (complete ophthalmic evaluation ASAP)", cls:"bad"}; }
 
@@ -275,7 +267,6 @@
     const age = el("age"), iopr = el("iopr"), iopl = el("iopl"), cctr = el("cctr"), cctl = el("cctl"), dx = el("dx");
     const outR = el("outR"), outL = el("outL"), riskInfo = el("riskInfo");
 
-    // 11) Patient-facing text blocks
     const TEXT_HIGH = `
       <div class="hrisk">
         <strong>Information for <span style="color:#ff9f9f">High Risk</span> Patients</strong>
@@ -292,7 +283,6 @@
         Your risk for these conditions increases with age and should be checked every year.</p>
       </div>`;
 
-    // Expose calc so Firestore/other integrations could reuse if needed
     window.calc = function calc(){
       const a = Number(age.value || 0);
       const rIOP = Number(iopr.value || 0);
@@ -311,7 +301,6 @@
       outL.innerHTML = `<strong>Left eye total:</strong> <span class="pill ${lc.cls}">${l} pts</span><br/>
         <strong>Risk:</strong> <span class="pill ${lc.cls}">${lc.tag}</span>`;
 
-      // Show highest-risk guidance (if any eye is High → show High; else Low)
       const anyHigh = (rc.cls === "bad") || (lc.cls === "bad");
       riskInfo.hidden = false;
       riskInfo.innerHTML = anyHigh ? TEXT_HIGH : TEXT_LOW;
@@ -332,23 +321,17 @@
       outR.hidden = true; outL.hidden = true; riskInfo.hidden = true; riskInfo.innerHTML = "";
     });
 
-    // Save to Google Sheet endpoint
     el("saveBtn").addEventListener("click", async () => {
-      if (!ENDPOINT_URL) { alert("Add your Google Apps Script URL at the top of the file first."); return; }
-      const payload = window.calc(); // compute & capture current values
+      const ENDPOINT = "https://script.google.com/macros/s/AKfycbw1aZVaPSjHe-4A4dVbWpmOrJ1fPDCyCrcOvdbeY-tZ9NX432vSypbMqy2EXHEK77x3/exec";
+      const payload = window.calc();
       try {
-        const res = await fetch(ENDPOINT_URL, {
+        const res = await fetch(ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            source: "laroche-glaucoma-calculator",
-            data: payload,
-            ua: navigator.userAgent
-          })
+          body: JSON.stringify({ source: "laroche-glaucoma-calculator", data: payload, ua: navigator.userAgent })
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const msg = await res.text();
-        alert("Saved ✔︎\n" + msg);
+        alert("Saved ✔︎");
       } catch (e) {
         alert("Save failed. Check endpoint and permissions.\n" + e.message);
       }
