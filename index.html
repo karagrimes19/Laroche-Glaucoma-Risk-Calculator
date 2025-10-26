@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Laroche Glaucoma Risk Calculator</title>
+  <meta name="description" content="Point-based glaucoma risk calculator based on Age, IOP, and CCT." />
+  <style>
+    :root { --bg:#0b1020; --card:#121a34; --ink:#e9ecf5; --muted:#a9b1c7; --accent:#5ea1ff; --danger:#ff7373; --ok:#73d17b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif; color:var(--ink); background:linear-gradient(180deg,#0a0f21, #111a39 40%, #0a0f21); }
+    header { padding:28px 16px 8px; text-align:center; }
+    header h1 { margin:0; font-size:clamp(22px, 3vw, 32px); letter-spacing:.2px; }
+    header p { margin:.4rem auto 0; color:var(--muted); max-width:800px; }
+    .wrap { max-width:1080px; margin:16px auto 48px; padding:0 16px; }
+    .grid { display:grid; gap:16px; grid-template-columns: 1fr; }
+    @media (min-width: 920px) { .grid { grid-template-columns: 2fr 1.3fr; } }
+    .card { background:color-mix(in oklab, var(--card) 92%, black); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:18px; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+    .card h2 { margin:.2rem 0 1rem; font-size:20px; }
+    fieldset { border:0; margin:0 0 14px; padding:0; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin:10px 0; }
+    label { font-size:14px; color:var(--muted); display:block; margin-bottom:6px; }
+    select, input[type="number"] {
+      width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03); color:var(--ink); outline:none;
+    }
+    .result { margin-top:10px; padding:12px; border-radius:12px; background:rgba(255,255,255,.03); border:1px dashed rgba(255,255,255,.15); }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; letter-spacing:.2px; border:1px solid rgba(255,255,255,.18); margin-left:8px; }
+    .pill.ok { background:rgba(115,209,123,.12); border-color:rgba(115,209,123,.4); color:var(--ok); }
+    .pill.bad { background:rgba(255,115,115,.12); border-color:rgba(255,115,115,.4); color:var(--danger); }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    button {
+      appearance:none; border:1px solid rgba(255,255,255,.15); background:linear-gradient(180deg, #1a2a57, #17234c);
+      color:#fff; padding:12px 14px; border-radius:12px; cursor:pointer; font-weight:600;
+    }
+    button.secondary { background:transparent; }
+    small.caption { color:var(--muted); display:block; margin-top:6px; }
+    footer { color:var(--muted); text-align:center; font-size:13px; margin:36px 0 20px; }
+    a { color:var(--accent); text-decoration:none; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Laroche Glaucoma Risk Calculator</h1>
+    <p>
+      Estimates glaucoma risk per eye using three factors: <strong>Age</strong>, <strong>Intraocular Pressure (IOP)</strong>, and
+      <strong>Central Corneal Thickness (CCT)</strong>. Scoring bins and risk thresholds reflect the companion PDF. :contentReference[oaicite:1]{index=1}
+    </p>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <section class="card">
+        <h2>Enter patient data</h2>
+
+        <fieldset class="row">
+          <div>
+            <label for="age">Age (years)</label>
+            <input id="age" type="number" min="1" max="120" step="1" placeholder="e.g., 62" />
+          </div>
+          <div>
+            <label>Age points <span id="agePts" class="pill">–</span></label>
+            <small class="caption">Auto-computed from age bin.</small>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <div class="row">
+            <div>
+              <label for="iopr">IOP Right (mmHg)</label>
+              <input id="iopr" type="number" min="1" max="80" step="1" placeholder="e.g., 24" />
+            </div>
+            <div>
+              <label for="iopl">IOP Left (mmHg)</label>
+              <input id="iopl" type="number" min="1" max="80" step="1" placeholder="e.g., 22" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="cctr">CCT Right (μm)</label>
+              <input id="cctr" type="number" min="350" max="700" step="1" placeholder="e.g., 520" />
+            </div>
+            <div>
+              <label for="cctl">CCT Left (μm)</label>
+              <input id="cctl" type="number" min="350" max="700" step="1" placeholder="e.g., 505" />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button id="calcBtn">Calculate risk</button>
+          <button class="secondary" id="clearBtn" type="button">Clear</button>
+          <button class="secondary" id="saveBtn" type="button" title="Stores a row to your Google Sheet">Save to log</button>
+        </div>
+
+        <div id="outR" class="result" hidden></div>
+        <div id="outL" class="result" hidden></div>
+        <small class="caption">
+          Risk guidance per PDF: Sum of points **0–5 → Low risk (re-evaluate in 1 year)**; **6–18 → High risk (complete ophthalmic evaluation ASAP)**. :contentReference[oaicite:2]{index=2}
+        </small>
+      </section>
+
+      <aside class="card">
+        <h2>Scoring bins</h2>
+        <div class="result">
+          <strong>Age → points</strong>
+          <div class="mono">
+            ≤40: 0 | 41–50: +1 | 51–60: +2 | 61–70: +3 | 71–80: +4 | 81–90: +5 | ≥91: +6
+          </div>
+        </div>
+        <div class="result">
+          <strong>IOP (per eye) → points</strong>
+          <div class="mono">
+            ≤12: 0 | 13–15: +1 | 16–18: +2 | 19–21: +3 | 22–25: +4 | 26–29: +5 | ≥30: +6
+          </div>
+        </div>
+        <div class="result">
+          <strong>CCT (per eye, μm) → points</strong>
+          <div class="mono">
+            &gt;600: −3 | 576–600: −2 | 551–575: −1 | 526–550: 0 | 500–525: +1 | 475–499: +2 |
+            450–474: +3 | 425–449: +4 | 400–424: +5 | &lt;400: +6
+          </div>
+        </div>
+        <p class="caption">
+          Note: CCT thicker than 600 μm reduces risk (negative points). Bins align to the table in your PDF. :contentReference[oaicite:3]{index=3}
+        </p>
+        <div class="result">
+          <strong>Storage</strong>
+          <p>Click <em>Save to log</em> to POST a row to your Google Sheet (you’ll plug in your Apps Script URL below).</p>
+          <small class="caption mono" id="endpointShow">(no endpoint set)</small>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer>
+    <div>The risks derived from these methods aid but do not replace clinical judgment and a complete ophthalmic exam. :contentReference[oaicite:4]{index=4}</div>
+  </footer>
+
+  <script>
+    // === Configuration: paste your Google Apps Script Web App URL here ===
+    const ENDPOINT_URL = ""; // e.g., "https://script.google.com/macros/s/AKfycb.../exec"
+    document.getElementById("endpointShow").textContent = ENDPOINT_URL ? ENDPOINT_URL : "(no endpoint set)";
+
+    // === Scoring helpers (bins match your PDF) ===
+    function agePoints(age){
+      if (age <= 40) return 0;
+      if (age <= 50) return 1;
+      if (age <= 60) return 2;
+      if (age <= 70) return 3;
+      if (age <= 80) return 4;
+      if (age <= 90) return 5;
+      return 6; // ≥91
+    }
+    function iopPoints(iop){
+      if (iop <= 12) return 0;
+      if (iop <= 15) return 1;
+      if (iop <= 18) return 2;
+      if (iop <= 21) return 3;
+      if (iop <= 25) return 4;
+      if (iop <= 29) return 5;
+      return 6; // ≥30
+    }
+    function cctPoints(cct){
+      if (cct > 600) return -3;
+      if (cct >= 576) return -2;
+      if (cct >= 551) return -1;
+      if (cct >= 526) return 0;
+      if (cct >= 500) return 1;
+      if (cct >= 475) return 2;
+      if (cct >= 450) return 3;
+      if (cct >= 425) return 4;
+      if (cct >= 400) return 5;
+      return 6; // <400
+    }
+    function classify(sum){
+      if (sum <= 5) return {tag:"Low risk (re-evaluate in 1 year)", cls:"ok"};
+      return {tag:"High risk (complete ophthalmic evaluation ASAP)", cls:"bad"};
+    }
+
+    const el = (id) => document.getElementById(id);
+    const age = el("age"), iopr = el("iopr"), iopl = el("iopl"), cctr = el("cctr"), cctl = el("cctl");
+    const outR = el("outR"), outL = el("outL"), agePts = el("agePts");
+
+    function calc(){
+      const a = Number(age.value || 0);
+      const rIOP = Number(iopr.value || 0);
+      const lIOP = Number(iopl.value || 0);
+      const rCCT = Number(cctr.value || 0);
+      const lCCT = Number(cctl.value || 0);
+
+      const ap = agePoints(a);
+      agePts.textContent = (ap >= 0 ? "+" : "") + ap;
+
+      const r = ap + iopPoints(rIOP) + cctPoints(rCCT);
+      const l = ap + iopPoints(lIOP) + cctPoints(lCCT);
+      const rc = classify(r), lc = classify(l);
+
+      outR.hidden = false; outL.hidden = false;
+      outR.innerHTML = `<strong>Right eye total:</strong> <span class="pill ${rc.cls}">${r} pts</span><br/>
+        <strong>Risk:</strong> <span class="pill ${rc.cls}">${rc.tag}</span>`;
+      outL.innerHTML = `<strong>Left eye total:</strong> <span class="pill ${lc.cls}">${l} pts</span><br/>
+        <strong>Risk:</strong> <span class="pill ${lc.cls}">${lc.tag}</span>`;
+
+      return { a, rIOP, lIOP, rCCT, lCCT, ap, r, l, rcTag: rc.tag, lcTag: lc.tag };
+    }
+
+    el("calcBtn").addEventListener("click", calc);
+    el("clearBtn").addEventListener("click", () => {
+      [age,iopr,iopl,cctr,cctl].forEach(x => x.value = "");
+      outR.hidden = true; outL.hidden = true; agePts.textContent = "–";
+    });
+
+    // Save to Google Sheet
+    el("saveBtn").addEventListener("click", async () => {
+      if (!ENDPOINT_URL) { alert("Add your Google Apps Script URL at the top of the file first."); return; }
+      const payload = calc(); // compute & capture current values
+      try {
+        const res = await fetch(ENDPOINT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "laroche-glaucoma-calculator",
+            data: payload,
+            ua: navigator.userAgent
+          })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const msg = await res.text();
+        alert("Saved ✔︎\n" + msg);
+      } catch (e) {
+        alert("Save failed. Check endpoint and permissions.\n" + e.message);
+      }
+    });
+  </script>
+</body>
+</html>
